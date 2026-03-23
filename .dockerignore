@@ -5,5 +5,4 @@ dist
 .env
 .env.*
 Dockerfile
-nginx.conf
 README.md
