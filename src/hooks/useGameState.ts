@@ -60,6 +60,7 @@ export function useGameState() {
       else if (nextMaxPhase === 5 && activePhase === 5 && (nextPhaseWins[5] || 0) >= 5) { nextMaxPhase = 6; nextCurrentPhase = 6; }
       else if (nextMaxPhase === 6 && activePhase === 6 && (nextPhaseWins[6] || 0) >= 5) { nextMaxPhase = 7; nextCurrentPhase = 7; }
       else if (nextMaxPhase === 7 && activePhase === 7 && (nextPhaseWins[7] || 0) >= 5) { nextMaxPhase = 8; nextCurrentPhase = 8; }
+      else if (nextMaxPhase === 8 && activePhase === 8 && (nextPhaseWins[8] || 0) >= 5) { nextMaxPhase = 9; nextCurrentPhase = 9; }
 
       return {
         ...prev,

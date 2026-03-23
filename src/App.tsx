@@ -24,6 +24,7 @@ const App = () => {
   const [showHintModal, setShowHintModal] = useState(false);
   const [hintMode, setHintMode] = useState<'hint' | 'solution'>('hint');
   const [showBadgesModal, setShowBadgesModal] = useState(false);
+  const [showLegendModal, setShowLegendModal] = useState(false);
   const [taskKey, setTaskKey] = useState(0);
   
   // Speedrun tracking
@@ -208,8 +209,30 @@ const App = () => {
   }
 
   return (
-    <div className="app-container">
+    <div className="app-container" style={{ position: 'relative' }}>
       
+      {/* Floating System Menu */}
+      <div style={{
+        position: 'fixed',
+        top: '2rem',
+        right: '2rem',
+        display: 'flex', 
+        gap: '0.75rem', 
+        alignItems: 'center', 
+        background: 'rgba(255,255,255,0.4)', 
+        padding: '0.35rem', 
+        borderRadius: '100px', 
+        boxShadow: 'inset 0 2px 4px rgba(0,0,0,0.05), 0 8px 16px rgba(0,0,0,0.1)',
+        backdropFilter: 'blur(10px)',
+        zIndex: 1000
+      }}>
+        <button onClick={() => setShowLegendModal(true)} title="Pomoč in navodila" style={{ background: 'white', border: 'none', width: '45px', height: '45px', borderRadius: '50%', cursor: 'pointer', fontSize: '1.6rem', display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: '0 2px 6px rgba(0,0,0,0.1)', transition: 'transform 0.2s', fontWeight: 900, color: '#ff4757' }}>?</button>
+        <button onClick={() => setShowBadgesModal(true)} title="Značke" style={{ background: 'linear-gradient(135deg, #FFD700 0%, #FDB931 100%)', border: 'none', width: '45px', height: '45px', borderRadius: '50%', cursor: 'pointer', fontSize: '1.5rem', display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: '0 2px 6px rgba(0,0,0,0.2)', transition: 'transform 0.2s' }}>🏆</button>
+        <button onClick={logout} title="Odjava" style={{ background: '#ff6b6b', border: 'none', width: '45px', height: '45px', borderRadius: '50%', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: '0 2px 6px rgba(0,0,0,0.2)', color: 'white', transition: 'transform 0.2s' }}>
+          <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path><polyline points="16 17 21 12 16 7"></polyline><line x1="21" y1="12" x2="9" y2="12"></line></svg>
+        </button>
+      </div>
+
       {/* Left Column: The Clock (Star of the app) */}
       <div className="clock-column">
         <div className={`clock-wrapper ${feedback === 'success' ? 'animate-pop' : feedback === 'fail' ? 'animate-shake' : ''}`}>
@@ -237,21 +260,17 @@ const App = () => {
       {/* Right Column: Information and Controls */}
       <div className="info-column">
         
-        <header className="game-header">
-          <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap' }}>
-            <div className="badge score-badge" onClick={logout} title="Odjava / Spremeni igralca">
-              <span className="emoji">👤</span>
-              <span className="badge-text">{playerName}</span>
-              <span className="divider"></span>
-              <span className="emoji">⭐</span>
-              <span className="badge-text">{score}</span>
-            </div>
-            <div className="badge score-badge" onClick={() => setShowBadgesModal(true)} title="Pokaži značke" style={{ cursor: 'pointer', background: 'linear-gradient(135deg, #FFD700 0%, #FDB931 100%)', border: 'none', boxShadow: '0 4px 10px rgba(255, 215, 0, 0.4)' }}>
-              <span className="emoji" style={{ filter: 'drop-shadow(0 2px 2px rgba(0,0,0,0.2))' }}>🏆</span>
-            </div>
-          </div>
+        <header className="game-header" style={{ display: 'flex', flexDirection: 'row', justifyContent: 'flex-start', alignItems: 'center', width: '100%', gap: '1rem', flexWrap: 'wrap' }}>
           
-          <div className="badge-group">
+          <div className="badge score-badge" style={{ margin: 0 }}>
+            <span className="emoji">👤</span>
+            <span className="badge-text">{playerName}</span>
+            <span className="divider"></span>
+            <span className="emoji">⭐</span>
+            <span className="badge-text">{score}</span>
+          </div>
+
+          <div className="badge-group" style={{ margin: 0 }}>
             <select 
               value={phase} 
               onChange={(e) => setPhase(Number(e.target.value) as Phase)}
@@ -313,14 +332,6 @@ const App = () => {
             </span>
             <div className="btn-shadow"></div>
           </button>
-
-          {activePhase !== 6 && activePhase !== 7 && (
-            <div className="legend">
-              <span className="legend-hour">Rdeč = ure</span>
-              <span className="legend-separator"></span>
-              <span className="legend-minute">Zelen = minute</span>
-            </div>
-          )}
 
           {phase === 9 && speedrunState === 'playing' && (
             <div style={{ marginTop: '1.5rem', background: timeLeft <= 10 ? 'var(--btn-fail)' : 'var(--surface-solid)', padding: '0.75rem 1.5rem', borderRadius: '100px', fontWeight: 900, color: timeLeft <= 10 ? 'white' : 'var(--text-dark)', transition: 'all 0.3s' }}>
@@ -506,6 +517,47 @@ const App = () => {
                 }}
               >
                 <span className="btn-content">Ponovi</span>
+                <div className="btn-shadow"></div>
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {showLegendModal && (
+        <div className="start-screen-overlay" onClick={() => setShowLegendModal(false)}>
+          <div className="start-modal" onClick={e => e.stopPropagation()} style={{ background: 'white', borderRadius: '2rem', width: '90%', maxWidth: '600px', maxHeight: '85vh', display: 'flex', flexDirection: 'column', overflow: 'hidden', boxShadow: '0 24px 48px rgba(0,0,0,0.2)' }}>
+            
+            <div style={{ padding: '2rem 2rem 1.5rem 2rem', display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '2px solid rgba(0,0,0,0.05)', background: '#f8fafc' }}>
+              <h1 className="task-title" style={{ fontSize: '2.5rem', color: 'var(--text-dark)', margin: 0 }}>❓ Navodila</h1>
+              <button onClick={() => setShowLegendModal(false)} style={{ background: 'white', border: '2px solid rgba(0,0,0,0.1)', fontSize: '1.5rem', cursor: 'pointer', width: '40px', height: '40px', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: '0 2px 4px rgba(0,0,0,0.05)' }}>✖️</button>
+            </div>
+
+            <div className="custom-scroll" style={{ padding: '1.5rem 2rem 2rem 2rem', overflowY: 'auto', textAlign: 'left', color: 'var(--text-dark)', fontSize: '1.1rem', lineHeight: '1.6' }}>
+              <h3 style={{ borderBottom: '2px solid var(--btn-success)', paddingBottom: '0.5rem', marginBottom: '1rem' }}>Zlata pravila ure</h3>
+              <ul style={{ paddingLeft: '1.5rem', marginBottom: '1.5rem' }}>
+                <li><strong style={{ color: '#ff4757' }}>Rdeči kazalec</strong> vedno kaže <strong>ure</strong>.</li>
+                <li><strong style={{ color: 'var(--btn-success)' }}>Zeleni kazalec</strong> vedno kaže <strong>minute</strong>.</li>
+              </ul>
+              
+              <h3 style={{ borderBottom: '2px solid var(--btn-success)', paddingBottom: '0.5rem', marginBottom: '1rem' }}>Meni Ikone</h3>
+              <ul style={{ paddingLeft: '0', listStyle: 'none', marginBottom: '1.5rem' }}>
+                <li style={{ marginBottom: '0.5rem' }}>👤 <strong>Profil:</strong> Tukaj piše tvoje ime.</li>
+                <li style={{ marginBottom: '0.5rem' }}>⭐ <strong>Zvezdice:</strong> Število vseh pravilnih odgovorov. Več kot rešiš, več jih imaš!</li>
+                <li style={{ marginBottom: '0.5rem' }}>🏆 <strong>Značke:</strong> Za vsako odklenjeno stopnjo dobiš novo zlato značko.</li>
+                <li style={{ marginBottom: '0.5rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                  <div style={{background: '#ff6b6b', borderRadius: '50%', padding: '0.2rem', display: 'inline-flex', color: 'white'}}>
+                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path><polyline points="16 17 21 12 16 7"></polyline><line x1="21" y1="12" x2="9" y2="12"></line></svg>
+                  </div>
+                  <strong>Odjava:</strong> Zamenjava igralca.
+                </li>
+              </ul>
+
+              <h3 style={{ borderBottom: '2px solid var(--btn-success)', paddingBottom: '0.5rem', marginBottom: '1rem' }}>Kako napredovati?</h3>
+              <p>Za prehod na naslednjo stopnjo moraš zbrati vsaj <strong>5 pravilnih zaporednih odgovorov</strong> na svoji najvišji stopnji. Sistem ti bo ob odklepu čestital z zvokom! Če se zmotiš 3x zaporedoma, pa ti bo razkril rešitev in te popeljal naprej.</p>
+              
+              <button className="submit-btn btn-primary" onClick={() => setShowLegendModal(false)} style={{ marginTop: '2rem' }}>
+                <span className="btn-content" style={{ color: 'white' }}>Razumem</span>
                 <div className="btn-shadow"></div>
               </button>
             </div>
