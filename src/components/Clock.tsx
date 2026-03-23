@@ -1,4 +1,4 @@
-import { useState, useRef, useEffect, useCallback } from 'react';
+import { useState, useRef, useEffect } from 'react';
 
 const polarToCartesian = (centerX: number, centerY: number, radius: number, angleInDegrees: number) => {
   const angleInRadians = ((angleInDegrees - 90) * Math.PI) / 180.0;
@@ -88,7 +88,7 @@ export const Clock = ({
       }
     };
 
-    const handleUp = (e: Event) => {
+    const handleUp = () => {
       if (activeHandRef.current) {
         activeHandRef.current = null;
         setActiveHand(null);
