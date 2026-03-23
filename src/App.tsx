@@ -13,6 +13,19 @@ const App = () => {
   const [targetTime, setTargetTime] = useState<{ hour: number; minute: number }>({ hour: 12, minute: 0 });
   const [userTime, setUserTime] = useState<{ hour: number; minute: number }>({ hour: 12, minute: 0 });
   const [activePhase, setActivePhase] = useState<Phase>(phase);
+  
+  // Level up modal tracking
+  const [prevMaxPhase, setPrevMaxPhase] = useState<Phase>(maxUnlockedPhase);
+  const [showLevelUpModal, setShowLevelUpModal] = useState(false);
+  const [unlockedPhaseId, setUnlockedPhaseId] = useState<Phase | null>(null);
+
+  useEffect(() => {
+    if (maxUnlockedPhase > prevMaxPhase) {
+      setUnlockedPhaseId(maxUnlockedPhase);
+      setShowLevelUpModal(true);
+      setPrevMaxPhase(maxUnlockedPhase);
+    }
+  }, [maxUnlockedPhase, prevMaxPhase]);
   const [feedback, setFeedback] = useState<'idle' | 'success' | 'fail'>('idle');
   const [options, setOptions] = useState<{ hour: number; minute: number }[]>([]);
   const [storyText, setStoryText] = useState<string>('');
@@ -129,7 +142,7 @@ const App = () => {
             >
               {[1,2,3,4,5,6,7,8].map(p => (
                 <option key={p} value={p} disabled={p > maxUnlockedPhase}>
-                  Faza {p} {p > maxUnlockedPhase ? '🔒' : ''}
+                  Stopnja {p} {p > maxUnlockedPhase ? '🔒' : ''}
                 </option>
               ))}
             </select>
@@ -198,6 +211,27 @@ const App = () => {
         </div>
         
       </div>
+
+      {showLevelUpModal && unlockedPhaseId && (
+        <div className="start-screen-overlay">
+          <div className="info-column start-modal" style={{ alignItems: 'center', textAlign: 'center', gap: '2rem' }}>
+            <h1 className="task-title" style={{ fontSize: '3rem', color: 'var(--text-dark)' }}>ČESTITKE! 🎉</h1>
+            <p style={{ fontSize: '1.5rem', fontWeight: 800, color: 'var(--text-dark)' }}>
+              Odlično ti gre! Odklenil si novo stopnjo:<br/>
+              <span style={{ color: 'var(--btn-success)', fontSize: '2rem', display: 'block', marginTop: '0.5rem' }}>Stopnja {unlockedPhaseId}</span>
+            </p>
+            <div className="control-panel">
+              <button 
+                onClick={() => setShowLevelUpModal(false)}
+                className="submit-btn btn-success"
+              >
+                <span className="btn-content">Nadaljuj</span>
+                <div className="btn-shadow"></div>
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
     </div>
   );
