@@ -1,4 +1,4 @@
-export type Phase = 1 | 2 | 3 | 4 | 5 | 6 | 7;
+export type Phase = 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8;
 
 export interface GameState {
   currentPhase: Phase;
@@ -17,7 +17,7 @@ export const generateTimeForPhase = (phase: Phase): { hour: number; minute: numb
       possibleMinutes = [30];
       break;
     case 3:
-      possibleMinutes = [0, 15, 30, 45]; // quarters
+      possibleMinutes = [15, 45]; // strict quarters
       break;
     case 4:
     case 6: // Digital

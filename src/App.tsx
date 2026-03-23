@@ -12,6 +12,7 @@ const App = () => {
 
   const [targetTime, setTargetTime] = useState<{ hour: number; minute: number }>({ hour: 12, minute: 0 });
   const [userTime, setUserTime] = useState<{ hour: number; minute: number }>({ hour: 12, minute: 0 });
+  const [activePhase, setActivePhase] = useState<Phase>(phase);
   const [feedback, setFeedback] = useState<'idle' | 'success' | 'fail'>('idle');
   const [options, setOptions] = useState<{ hour: number; minute: number }[]>([]);
   const [storyText, setStoryText] = useState<string>('');
@@ -24,19 +25,26 @@ const App = () => {
     4: "Učimo se minute! ⏱️",
     5: "Učimo se 24-urni format! 🌍",
     6: "Učimo se digitalne ure! 📱",
-    7: "Besedilne naloge! 📖"
+    7: "Besedilne naloge! 📖",
+    8: "Splošno ponavljanje! 🎓"
   };
 
   useEffect(() => {
-    if (phase === 7) {
+    let currentActive = phase;
+    if (phase === 8) {
+      currentActive = (Math.floor(Math.random() * 7) + 1) as Phase;
+    }
+    setActivePhase(currentActive);
+
+    if (currentActive === 7) {
       const task = generateStoryForPhase7();
       setTargetTime(task.targetTime);
       setStoryText(task.storyText);
       setUserTime({ hour: 12, minute: 0 }); 
     } else {
-      const t = generateTimeForPhase(phase);
+      const t = generateTimeForPhase(currentActive);
       setTargetTime(t);
-      if (phase === 6) {
+      if (currentActive === 6) {
         setOptions(generateMultipleChoiceOptions(t));
         setUserTime({ hour: 0, minute: 0 }); 
       } else {
@@ -62,13 +70,13 @@ const App = () => {
     }
   };
 
-  const timeString = phase === 5 
+  const timeString = activePhase === 5 
     ? `${targetTime.hour.toString().padStart(2, '0')}:${targetTime.minute.toString().padStart(2, '0')}` // Force 24h
     : formatTimeStr(targetTime.hour, targetTime.minute); 
   
   const snapInterval = 5; 
 
-  const isSubmitDisabled = feedback !== 'idle' || (phase === 6 && userTime.hour === 0);
+  const isSubmitDisabled = feedback !== 'idle' || (activePhase === 6 && userTime.hour === 0);
 
   if (!playerName) {
     return <StartScreen onStart={(name) => updateState({ playerName: name })} />;
@@ -81,10 +89,10 @@ const App = () => {
       <div className="clock-column">
         <div className={`clock-wrapper ${feedback === 'success' ? 'animate-pop' : feedback === 'fail' ? 'animate-shake' : ''}`}>
           <Clock 
-            initialHour={phase === 6 ? targetTime.hour : userTime.hour} 
-            initialMinute={phase === 6 ? targetTime.minute : userTime.minute} 
-            interactive={phase !== 6 && feedback === 'idle'}
-            onTimeChange={(val) => { if (phase !== 6) setUserTime(val); }}
+            initialHour={activePhase === 6 ? targetTime.hour : userTime.hour} 
+            initialMinute={activePhase === 6 ? targetTime.minute : userTime.minute} 
+            interactive={activePhase !== 6 && feedback === 'idle'}
+            onTimeChange={(val) => { if (activePhase !== 6) setUserTime(val); }}
             snapInterval={snapInterval}
           />
 
@@ -119,7 +127,7 @@ const App = () => {
               onChange={(e) => setPhase(Number(e.target.value) as Phase)}
               className="badge phase-dropdown"
             >
-              {[1,2,3,4,5,6,7].map(p => (
+              {[1,2,3,4,5,6,7,8].map(p => (
                 <option key={p} value={p} disabled={p > maxUnlockedPhase}>
                   Faza {p} {p > maxUnlockedPhase ? '🔒' : ''}
                 </option>
@@ -135,12 +143,12 @@ const App = () => {
         <main className="game-main">
           <div className="instruction-card">
             <div className="phase-badge">
-              {phaseTexts[phase]}
+              {phase === 8 ? `Mešano: ${phaseTexts[activePhase]}` : phaseTexts[phase]}
             </div>
             
-            <h1 className="task-title" style={{ fontSize: phase === 7 ? '1.8rem' : '2.5rem', lineHeight: '1.4' }}>
-              {phase === 7 ? storyText :
-               phase === 6 ? "Katera ura je to?" : (
+            <h1 className="task-title" style={{ fontSize: activePhase === 7 ? '1.8rem' : '2.5rem', lineHeight: '1.4' }}>
+              {activePhase === 7 ? storyText :
+               activePhase === 6 ? "Katera ura je to?" : (
                 <>
                   Nastavi uro na:<br />
                   <div className="task-time">{timeString}</div>
@@ -148,7 +156,7 @@ const App = () => {
               )}
             </h1>
             
-            {phase !== 6 && phase !== 7 && (
+            {activePhase !== 6 && activePhase !== 7 && (
               <div className="legend">
                 <span className="legend-hour">Rdeč = ure</span>
                 <span className="legend-separator"></span>
@@ -156,7 +164,7 @@ const App = () => {
               </div>
             )}
 
-            {phase === 6 && (
+            {activePhase === 6 && (
               <div className="options-grid">
                 {options.map((opt, i) => {
                   const isSelected = userTime.hour === opt.hour && userTime.minute === opt.minute;

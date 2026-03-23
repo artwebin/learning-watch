@@ -50,6 +50,7 @@ export function useGameState() {
       else if (nextMaxPhase === 4 && nextScore >= 20) { nextMaxPhase = 5; nextCurrentPhase = 5; }
       else if (nextMaxPhase === 5 && nextScore >= 25) { nextMaxPhase = 6; nextCurrentPhase = 6; }
       else if (nextMaxPhase === 6 && nextScore >= 30) { nextMaxPhase = 7; nextCurrentPhase = 7; }
+      else if (nextMaxPhase === 7 && nextScore >= 35) { nextMaxPhase = 8; nextCurrentPhase = 8; }
 
       return {
         ...prev,
