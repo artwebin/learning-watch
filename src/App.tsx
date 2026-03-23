@@ -14,10 +14,13 @@ const App = () => {
   const [userTime, setUserTime] = useState<{ hour: number; minute: number }>({ hour: 12, minute: 0 });
   const [activePhase, setActivePhase] = useState<Phase>(phase);
   
-  // Level up modal tracking
+  // Level up & Hint modal tracking
   const [prevMaxPhase, setPrevMaxPhase] = useState<Phase>(maxUnlockedPhase);
   const [showLevelUpModal, setShowLevelUpModal] = useState(false);
   const [unlockedPhaseId, setUnlockedPhaseId] = useState<Phase | null>(null);
+  
+  const [consecutiveFails, setConsecutiveFails] = useState(0);
+  const [showHintModal, setShowHintModal] = useState(false);
 
   useEffect(() => {
     if (maxUnlockedPhase > prevMaxPhase) {
@@ -43,6 +46,17 @@ const App = () => {
     6: "Učimo se digitalne ure! 📱",
     7: "Besedilne naloge! 📖",
     8: "Splošno ponavljanje! 🎓"
+  };
+
+  const phaseHints: Record<number, string> = {
+    1: "Pri polnih urah je dolgi (zeleni) kazalec vedno na številki 12! Kratki (rdeči) kazalec pa vedno kaže točno na številko ure, ki jo iščemo.",
+    2: "Pri polovičnih urah je dolgi (zeleni) kazalec vedno na številki 6, kar pomeni 30 minut. Kratki (rdeči) kazalec pa mora biti vedno na sredini med dvema urama!",
+    3: "Četrtinke pomenijo 15 ali 45 minut. Če je 15 minut, je zeleni kazalec obrnjen na 3. Če je 45 minut, pa na 9!",
+    4: "Minute šteješ s pomočjo zelenih črtic: vsaka številka pomeni 5 minut (1 = 5 min, 2 = 10 min...). Za vsako črtico vmes prištej še 1 minuto!",
+    5: "24-urni format je preprost: Uram popoldne preprosto prištej 12! (Primer: 2 popoldne = 2 + 12 = 14:00, 5 popoldne = 5 + 12 = 17:00).",
+    6: "Najprej poglej, kam točno kaže rdeči kazalec za uro. Nato poglej, na kateri številki je zeleni kazalec in to številko pomnoži s 5 za minute!",
+    7: "Pri besedilni nalogi najprej poišči na kateri uri se dogodek zares začne. Nato na uri enostavno prištej še minute, ki zahtevajo da se dogodek konča.",
+    8: "To je mešana faza, bodi zelo pozoren na navodila zgoraj! Včasih boš bral uro, včasih nastavljal kazalce ali reševal uganke."
   };
 
   useEffect(() => {
@@ -72,6 +86,7 @@ const App = () => {
   const handleSubmit = () => {
     if (checkTimeMatch(userTime, targetTime)) {
       setFeedback('success');
+      setConsecutiveFails(0); // Reset tracking on success
       
       setTimeout(() => {
         setFeedback('idle');
@@ -80,8 +95,15 @@ const App = () => {
       
     } else {
       setFeedback('fail');
+      const newFails = consecutiveFails + 1;
+      setConsecutiveFails(newFails);
+      
       setTimeout(() => {
         setFeedback('idle');
+        if (newFails >= 2) {
+          setShowHintModal(true);
+          setConsecutiveFails(0); // Reset tracking after showing hint
+        }
       }, 1500);
     }
   };
@@ -229,6 +251,26 @@ const App = () => {
                 className="submit-btn btn-success"
               >
                 <span className="btn-content">Nadaljuj</span>
+                <div className="btn-shadow"></div>
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {showHintModal && (
+        <div className="start-screen-overlay">
+          <div className="info-column start-modal" style={{ alignItems: 'center', textAlign: 'center', gap: '1.5rem', border: '5px solid var(--primary-color)' }}>
+            <h1 className="task-title" style={{ fontSize: '2.5rem', color: 'var(--text-dark)' }}>Potrebuješ pomoč? 💡</h1>
+            <p style={{ fontSize: '1.25rem', fontWeight: 600, color: 'var(--text-dark)', lineHeight: '1.6' }}>
+              {phaseHints[activePhase]}
+            </p>
+            <div className="control-panel">
+              <button 
+                onClick={() => setShowHintModal(false)}
+                className="submit-btn btn-primary"
+              >
+                <span className="btn-content" style={{ color: '#fff' }}>Razumem!</span>
                 <div className="btn-shadow"></div>
               </button>
             </div>

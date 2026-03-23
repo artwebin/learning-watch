@@ -7,6 +7,7 @@ export interface GameState {
   currentPhase: Phase;
   score: number;
   level: number;
+  phaseWins: Partial<Record<Phase, number>>;
 }
 
 const defaultState: GameState = {
@@ -14,7 +15,8 @@ const defaultState: GameState = {
   maxUnlockedPhase: 1,
   currentPhase: 1,
   score: 0,
-  level: 1
+  level: 1,
+  phaseWins: {}
 };
 
 export function useGameState() {
@@ -43,21 +45,27 @@ export function useGameState() {
       let nextMaxPhase = prev.maxUnlockedPhase;
       let nextCurrentPhase = prev.currentPhase;
       
-      // Progression logic
-      if (nextMaxPhase === 1 && nextScore >= 5) { nextMaxPhase = 2; nextCurrentPhase = 2; }
-      else if (nextMaxPhase === 2 && nextScore >= 10) { nextMaxPhase = 3; nextCurrentPhase = 3; }
-      else if (nextMaxPhase === 3 && nextScore >= 15) { nextMaxPhase = 4; nextCurrentPhase = 4; }
-      else if (nextMaxPhase === 4 && nextScore >= 20) { nextMaxPhase = 5; nextCurrentPhase = 5; }
-      else if (nextMaxPhase === 5 && nextScore >= 25) { nextMaxPhase = 6; nextCurrentPhase = 6; }
-      else if (nextMaxPhase === 6 && nextScore >= 30) { nextMaxPhase = 7; nextCurrentPhase = 7; }
-      else if (nextMaxPhase === 7 && nextScore >= 35) { nextMaxPhase = 8; nextCurrentPhase = 8; }
+      const prevPhaseWins = prev.phaseWins || {};
+      const activePhase = prev.currentPhase;
+      const currentPhaseWinsCount = (prevPhaseWins[activePhase] || 0) + 1;
+      const nextPhaseWins = { ...prevPhaseWins, [activePhase]: currentPhaseWinsCount };
+      
+      // Progression logic: strictly require 5 wins in the specific phase to unlock the next one
+      if (nextMaxPhase === 1 && activePhase === 1 && (nextPhaseWins[1] || 0) >= 5) { nextMaxPhase = 2; nextCurrentPhase = 2; }
+      else if (nextMaxPhase === 2 && activePhase === 2 && (nextPhaseWins[2] || 0) >= 5) { nextMaxPhase = 3; nextCurrentPhase = 3; }
+      else if (nextMaxPhase === 3 && activePhase === 3 && (nextPhaseWins[3] || 0) >= 5) { nextMaxPhase = 4; nextCurrentPhase = 4; }
+      else if (nextMaxPhase === 4 && activePhase === 4 && (nextPhaseWins[4] || 0) >= 5) { nextMaxPhase = 5; nextCurrentPhase = 5; }
+      else if (nextMaxPhase === 5 && activePhase === 5 && (nextPhaseWins[5] || 0) >= 5) { nextMaxPhase = 6; nextCurrentPhase = 6; }
+      else if (nextMaxPhase === 6 && activePhase === 6 && (nextPhaseWins[6] || 0) >= 5) { nextMaxPhase = 7; nextCurrentPhase = 7; }
+      else if (nextMaxPhase === 7 && activePhase === 7 && (nextPhaseWins[7] || 0) >= 5) { nextMaxPhase = 8; nextCurrentPhase = 8; }
 
       return {
         ...prev,
         score: nextScore,
         level: nextLevel,
         maxUnlockedPhase: nextMaxPhase,
-        currentPhase: nextCurrentPhase
+        currentPhase: nextCurrentPhase,
+        phaseWins: nextPhaseWins
       };
     });
   };
