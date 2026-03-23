@@ -7,7 +7,9 @@ export interface GameState {
 
 export const generateTimeForPhase = (phase: Phase): { hour: number; minute: number } => {
   let hour = Math.floor(Math.random() * 12) + 1;
-  let possibleMinutes = [0];
+  let minute = 0; // Initialize minute here
+
+  let possibleMinutes = [0]; // Initialize for other cases
 
   switch (phase) {
     case 1:
@@ -24,14 +26,9 @@ export const generateTimeForPhase = (phase: Phase): { hour: number; minute: numb
       // 5 minute intervals (0, 5, 10, ... 55)
       possibleMinutes = Array.from({ length: 12 }, (_, i) => i * 5);
       break;
-    case 5: // 24-hour format
-      possibleMinutes = Array.from({ length: 12 }, (_, i) => i * 5);
-      // Make it 24-hour randomly
-      if (Math.random() > 0.4) {
-        if (hour !== 12) hour += 12; // 1->13, 2->14...
-      } else if (Math.random() > 0.8 && hour === 12) {
-        hour = 0; // midnight
-      }
+    case 5:
+      hour = Math.floor(Math.random() * 11) + 13; // Strict 24h format (13 - 23)
+      minute = [0, 15, 30, 45, Math.floor(Math.random() * 60)][Math.floor(Math.random() * 5)];
       break;
   }
 
@@ -45,7 +42,10 @@ export const generateTimeForPhase = (phase: Phase): { hour: number; minute: numb
   // Fallback for Phase 7 just in case called, though we'll use generateStoryForPhase7
   if (phase === 7) return { hour: 12, minute: 0 };
 
-  const minute = possibleMinutes[Math.floor(Math.random() * possibleMinutes.length)];
+  // If minute was not set in case 5, set it using possibleMinutes
+  if (phase !== 5) {
+    minute = possibleMinutes[Math.floor(Math.random() * possibleMinutes.length)];
+  }
   return { hour, minute };
 };
 
@@ -60,7 +60,7 @@ export const generateStoryForPhase7 = (): StoryTask => {
   const startMinutes = [0, 15, 30, 45];
   const startMinute = startMinutes[Math.floor(Math.random() * startMinutes.length)];
   
-  const durations = [15, 30, 45, 60, 90, 120];
+  const durations = [15, 30, 45, 60];
   const duration = durations[Math.floor(Math.random() * durations.length)];
   
   let targetMinute = startMinute + duration;
@@ -71,10 +71,15 @@ export const generateStoryForPhase7 = (): StoryTask => {
   
   const templates = [
     `Pouk se začne ob ${startStr} in traja ${duration} minut. Nastavi kazalce na konec pouka!`,
-    `Zdaj je ${startStr}. Čez ${duration} minut greš na rojstni dan. Ob kateri uri moraš iti?`,
+    `Zdaj je ${startStr}. Čez ${duration} minut greš na bajramsko veselico. Ob kateri uri moraš iti?`,
     `Na avtobus čakaš ob ${startStr}. Vožnja traja ${duration} minut. Ob kateri uri prispeš na cilj?`,
     `Tvoja najljubša risanka se začne ob ${startStr}. Če traja ${duration} minut, kdaj se risanka konča?`,
-    `Test peke piškotov se začne ob ${startStr}. Pečica mora biti prižgana ${duration} minut. Kdaj poberemo piškote ven?`
+    `Test peke piškotov se začne ob ${startStr}. Pečica mora biti prižgana ${duration} minut. Kdaj poberemo piškote ven?`,
+    `Zdravnik te čaka ob ${startStr}. Čakanje traja ${duration} minut. Kdaj te zdravnik pokliče?`,
+    `Telovadba se začne ob ${startStr} in traja ${duration} minut. Ob kateri uri se konča?`,
+    `Zdaj je ${startStr}. Čez ${duration} minut imaš uro plavanja. Kdaj moraš oditi?`,
+    `Film se začne ob ${startStr} in traja ${duration} minut. Kdaj se konča?`,
+    `Prijatelj te čaka ob ${startStr}. Skupaj se igrata ${duration} minut. Kdaj se poslovita?`
   ];
   
   const storyText = templates[Math.floor(Math.random() * templates.length)];

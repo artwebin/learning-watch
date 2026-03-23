@@ -12,7 +12,7 @@ const App = () => {
   const { playerName, currentPhase: phase, maxUnlockedPhase, score, level, speedrunHighscore } = state;
 
   const [targetTime, setTargetTime] = useState<{ hour: number; minute: number }>({ hour: 12, minute: 0 });
-  const [userTime, setUserTime] = useState<{ hour: number; minute: number }>({ hour: 12, minute: 0 });
+  const [userTime, setUserTime] = useState<{ hour: number; minute: number }>({ hour: 3, minute: 0 });
   const [activePhase, setActivePhase] = useState<Phase>(phase);
   
   // Level up & Hint modal tracking
@@ -25,6 +25,8 @@ const App = () => {
   const [hintMode, setHintMode] = useState<'hint' | 'solution'>('hint');
   const [showBadgesModal, setShowBadgesModal] = useState(false);
   const [showLegendModal, setShowLegendModal] = useState(false);
+  const [showPhaseHintModal, setShowPhaseHintModal] = useState(false);
+  const [hintsSeen, setHintsSeen] = useState<number[]>([]);
   const [taskKey, setTaskKey] = useState(0);
   
   // Speedrun tracking
@@ -111,6 +113,12 @@ const App = () => {
   };
 
   useEffect(() => {
+    if (!hintsSeen.includes(phase)) {
+      setHintsSeen(prev => [...prev, phase]);
+      // Show instructional hint modal automatically on unseen phase entry
+      setTimeout(() => setShowPhaseHintModal(true), 600);
+    }
+
     let currentActive = phase;
     if (phase === 8 || phase === 9) {
       currentActive = (Math.floor(Math.random() * 7) + 1) as Phase;
@@ -121,7 +129,7 @@ const App = () => {
       const task = generateStoryForPhase7();
       setTargetTime(task.targetTime);
       setStoryText(task.storyText);
-      setUserTime({ hour: 12, minute: 0 }); 
+      setUserTime({ hour: 3, minute: 0 }); 
     } else {
       const t = generateTimeForPhase(currentActive);
       setTargetTime(t);
@@ -129,10 +137,10 @@ const App = () => {
         setOptions(generateMultipleChoiceOptions(t));
         setUserTime({ hour: 0, minute: 0 }); 
       } else {
-        setUserTime({ hour: 12, minute: 0 }); 
+        setUserTime({ hour: 3, minute: 0 }); 
       }
     }
-  }, [phase, level]);
+  }, [phase, level, taskKey]);
 
   const handleSubmit = () => {
     if (checkTimeMatch(userTime, targetTime)) {
@@ -260,7 +268,7 @@ const App = () => {
       {/* Right Column: Information and Controls */}
       <div className="info-column">
         
-        <header className="game-header" style={{ display: 'flex', flexDirection: 'row', justifyContent: 'flex-start', alignItems: 'center', width: '100%', gap: '1rem', flexWrap: 'wrap' }}>
+        <header className="game-header" style={{ display: 'flex', flexDirection: 'row', justifyContent: 'flex-start', alignItems: 'center', width: '100%', gap: '1rem', flexWrap: 'nowrap', overflowX: 'auto', whiteSpace: 'nowrap' }}>
           
           <div className="badge score-badge" style={{ margin: 0 }}>
             <span className="emoji">👤</span>
@@ -418,7 +426,7 @@ const App = () => {
       )}
 
       {showBadgesModal && (
-        <div className="start-screen-overlay" onClick={() => setShowBadgesModal(false)}>
+        <div className="start-screen-overlay" onClick={() => setShowBadgesModal(false)} style={{ zIndex: 1050 }}>
           <div className="info-column start-modal" onClick={e => e.stopPropagation()} style={{ width: '90%', maxWidth: '700px', maxHeight: '85vh', overflowY: 'auto' }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '2rem' }}>
               <h1 className="task-title" style={{ fontSize: '2.5rem', color: 'var(--text-dark)', margin: 0 }}>🏆 Moje Značke</h1>
@@ -431,7 +439,7 @@ const App = () => {
 
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(130px, 1fr))', gap: '1.5rem' }}>
               {BADGES.map(b => {
-                const unlocked = maxUnlockedPhase >= b.phase;
+                const unlocked = maxUnlockedPhase > b.phase || (b.phase === 9 && speedrunHighscore > 0);
                 return (
                   <div key={b.phase} style={{
                     background: unlocked ? 'linear-gradient(135deg, #FFD700 0%, #FDB931 100%)' : 'var(--surface-solid)',
@@ -456,6 +464,24 @@ const App = () => {
             <div style={{ textAlign: 'center', marginTop: '2rem', color: 'gray', fontWeight: 600 }}>
               Z vsako odprto stopnjo osvojiš novo značko!
             </div>
+          </div>
+        </div>
+      )}
+
+      {showPhaseHintModal && (
+        <div className="start-screen-overlay" onClick={() => setShowPhaseHintModal(false)} style={{ zIndex: 1060 }}>
+          <div className="start-modal animate-pop" onClick={e => e.stopPropagation()} style={{ background: 'white', borderRadius: '2rem', padding: '2.5rem', width: '90%', maxWidth: '500px', textAlign: 'center', boxShadow: '0 24px 48px rgba(0,0,0,0.2)' }}>
+            <div style={{ fontSize: '3.5rem', marginBottom: '1rem' }}>🎓</div>
+            <h2 style={{ fontSize: '2rem', color: 'var(--text-dark)', marginBottom: '1.5rem', fontFamily: "'Outfit', sans-serif", fontWeight: 900 }}>
+              Nova Stopnja: {phase === 9 ? 'Speedrun' : phase}
+            </h2>
+            <p style={{ fontSize: '1.2rem', color: 'var(--text-dark)', lineHeight: '1.6', marginBottom: '2rem' }}>
+              {phase === 9 ? 'Speedrun izziv! Poskusi v 60 sekundah rešiti čim več nalog. Čas hitro teče, zato bodi zbran!' : phaseHints[phase]}
+            </p>
+            <button className="submit-btn btn-primary" onClick={() => setShowPhaseHintModal(false)}>
+              <span className="btn-content" style={{ color: 'white' }}>Razumem, gremo!</span>
+              <div className="btn-shadow"></div>
+            </button>
           </div>
         </div>
       )}
@@ -525,7 +551,7 @@ const App = () => {
       )}
 
       {showLegendModal && (
-        <div className="start-screen-overlay" onClick={() => setShowLegendModal(false)}>
+        <div className="start-screen-overlay" onClick={() => setShowLegendModal(false)} style={{ zIndex: 1050 }}>
           <div className="start-modal" onClick={e => e.stopPropagation()} style={{ background: 'white', borderRadius: '2rem', width: '90%', maxWidth: '600px', maxHeight: '85vh', display: 'flex', flexDirection: 'column', overflow: 'hidden', boxShadow: '0 24px 48px rgba(0,0,0,0.2)' }}>
             
             <div style={{ padding: '2rem 2rem 1.5rem 2rem', display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '2px solid rgba(0,0,0,0.05)', background: '#f8fafc' }}>
