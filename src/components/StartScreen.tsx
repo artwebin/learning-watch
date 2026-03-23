@@ -20,7 +20,7 @@ export const StartScreen: React.FC<Props> = ({ onStart }) => {
       <div className="info-column start-modal">
         <h1 className="task-title" style={{ fontSize: '3.5rem' }}>Učenje Ure! 🕒</h1>
         <p style={{ fontSize: '1.5rem', fontWeight: 600, color: 'var(--text-dark)', margin: '1rem 0' }}>
-          Vpiši svoje ime in začni z igro:
+          Vpiši svoje ime in začni z učenjem:
         </p>
         <form onSubmit={handleSubmit} style={{ width: '100%', display: 'flex', flexDirection: 'column', gap: '2rem' }}>
           <input 
@@ -37,7 +37,7 @@ export const StartScreen: React.FC<Props> = ({ onStart }) => {
               disabled={!name.trim()}
               className="submit-btn btn-success"
             >
-              <span className="btn-content">Začni Igrati</span>
+              <span className="btn-content">Začni se učiti</span>
               <div className="btn-shadow"></div>
             </button>
           </div>
