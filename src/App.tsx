@@ -21,6 +21,17 @@ const App = () => {
   
   const [consecutiveFails, setConsecutiveFails] = useState(0);
   const [showHintModal, setShowHintModal] = useState(false);
+  const [hintMode, setHintMode] = useState<'hint' | 'solution'>('hint');
+  const [taskKey, setTaskKey] = useState(0);
+
+  // Mobile blocker
+  const [isMobile, setIsMobile] = useState(window.innerWidth < 768);
+
+  useEffect(() => {
+    const handleResize = () => setIsMobile(window.innerWidth < 768);
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
 
   useEffect(() => {
     if (maxUnlockedPhase > prevMaxPhase) {
@@ -31,7 +42,7 @@ const App = () => {
       // User logged out entirely or a lower state was loaded
       setPrevMaxPhase(maxUnlockedPhase);
     }
-  }, [maxUnlockedPhase, prevMaxPhase]);
+  }, [maxUnlockedPhase, prevMaxPhase, taskKey]);
   const [feedback, setFeedback] = useState<'idle' | 'success' | 'fail'>('idle');
   const [options, setOptions] = useState<{ hour: number; minute: number }[]>([]);
   const [storyText, setStoryText] = useState<string>('');
@@ -100,9 +111,13 @@ const App = () => {
       
       setTimeout(() => {
         setFeedback('idle');
-        if (newFails >= 2) {
+        if (newFails === 2) {
+          setHintMode('hint');
           setShowHintModal(true);
-          setConsecutiveFails(0); // Reset tracking after showing hint
+        } else if (newFails >= 3) {
+          setHintMode('solution');
+          setShowHintModal(true);
+          setConsecutiveFails(0); // Reset tracking after showing solution
         }
       }, 1500);
     }
@@ -115,6 +130,21 @@ const App = () => {
   const snapInterval = 5; 
 
   const isSubmitDisabled = feedback !== 'idle' || (activePhase === 6 && userTime.hour === 0);
+
+  if (isMobile) {
+    return (
+      <div className="app-container" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+        <div className="info-column start-modal" style={{ textAlign: 'center', padding: '3rem 2rem', border: '5px solid var(--primary-color)' }}>
+          <h1 style={{ fontSize: '4rem', marginBottom: '1rem' }}>🖥️</h1>
+          <h2 className="task-title" style={{ fontSize: '2rem', color: 'var(--text-dark)', marginBottom: '1rem' }}>Naprava ni podprta</h2>
+          <p style={{ fontSize: '1.25rem', color: 'var(--text-dark)', lineHeight: '1.6', fontWeight: 600 }}>
+            Ta učna aplikacija je zasnovana posebej za večje zaslone (računalnike in tablice).<br/><br/>
+            Prosimo, da za najboljšo izkušnjo odpreš stran na širši napravi!
+          </p>
+        </div>
+      </div>
+    );
+  }
 
   if (!playerName) {
     return <StartScreen onStart={(name) => updateState({ playerName: name })} />;
@@ -171,10 +201,6 @@ const App = () => {
                 </option>
               ))}
             </select>
-
-            <div className="badge level-badge">
-              NIVO {level}
-            </div>
           </div>
         </header>
 
@@ -261,13 +287,47 @@ const App = () => {
       {showHintModal && (
         <div className="start-screen-overlay">
           <div className="info-column start-modal" style={{ alignItems: 'center', textAlign: 'center', gap: '1.5rem', border: '5px solid var(--primary-color)' }}>
-            <h1 className="task-title" style={{ fontSize: '2.5rem', color: 'var(--text-dark)' }}>Potrebuješ pomoč? 💡</h1>
+            <h1 className="task-title" style={{ fontSize: '2.5rem', color: 'var(--text-dark)' }}>
+              {hintMode === 'solution' ? 'Joj, ni čisto prav! 🕒' : 'Potrebuješ pomoč? 💡'}
+            </h1>
+            
+            {hintMode === 'solution' && (
+              <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '1.5rem', width: '100%' }}>
+                <div style={{ 
+                  background: 'var(--surface-solid)', 
+                  color: 'var(--text-dark)', 
+                  padding: '0.5rem 1.5rem', 
+                  borderRadius: '100px', 
+                  fontWeight: 800, 
+                  fontSize: '1.5rem',
+                  boxShadow: '0 4px 12px rgba(0,0,0,0.15)'
+                }}>
+                  Pravilen odgovor: {activePhase === 5 ? `${targetTime.hour.toString().padStart(2, '0')}:${targetTime.minute.toString().padStart(2, '0')}` : formatTimeStr(targetTime.hour, targetTime.minute)}
+                </div>
+                
+                <div style={{ width: '220px', height: '220px', pointerEvents: 'none', filter: 'drop-shadow(0 10px 20px rgba(0,0,0,0.15))' }}>
+                  <Clock 
+                    initialHour={targetTime.hour} 
+                    initialMinute={targetTime.minute} 
+                    interactive={false}
+                    onTimeChange={() => {}}
+                    snapInterval={5}
+                  />
+                </div>
+              </div>
+            )}
+
             <p style={{ fontSize: '1.25rem', fontWeight: 600, color: 'var(--text-dark)', lineHeight: '1.6' }}>
               {phaseHints[activePhase]}
             </p>
             <div className="control-panel">
               <button 
-                onClick={() => setShowHintModal(false)}
+                onClick={() => {
+                  setShowHintModal(false);
+                  if (hintMode === 'solution') {
+                    setTaskKey(k => k + 1); // Skip to new task
+                  }
+                }}
                 className="submit-btn btn-primary"
               >
                 <span className="btn-content" style={{ color: '#fff' }}>Razumem!</span>
