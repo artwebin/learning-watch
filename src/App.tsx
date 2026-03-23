@@ -24,6 +24,9 @@ const App = () => {
       setUnlockedPhaseId(maxUnlockedPhase);
       setShowLevelUpModal(true);
       setPrevMaxPhase(maxUnlockedPhase);
+    } else if (maxUnlockedPhase < prevMaxPhase) {
+      // User logged out entirely or a lower state was loaded
+      setPrevMaxPhase(maxUnlockedPhase);
     }
   }, [maxUnlockedPhase, prevMaxPhase]);
   const [feedback, setFeedback] = useState<'idle' | 'success' | 'fail'>('idle');
