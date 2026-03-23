@@ -1,5 +1,6 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef, useCallback } from 'react';
 import type { Phase } from '../engine/gameEngine';
+import { saveStudent } from '../lib/supabaseClient';
 
 export interface GameState {
   playerName: string;
@@ -11,7 +12,7 @@ export interface GameState {
   speedrunHighscore: number;
 }
 
-const defaultState: GameState = {
+export const defaultState: GameState = {
   playerName: '',
   maxUnlockedPhase: 1,
   currentPhase: 1,
@@ -23,18 +24,41 @@ const defaultState: GameState = {
 
 export function useGameState() {
   const [state, setState] = useState<GameState>(() => {
+    // Fallback: try loading from localStorage during initial render
     const saved = localStorage.getItem('watchGameProgression');
     if (saved) {
-      try {
-        return JSON.parse(saved);
-      } catch(e) {}
+      try { return JSON.parse(saved); } catch(e) {}
     }
     return defaultState;
   });
 
+  // Keep a ref so the debounce callback always sees fresh state
+  const stateRef = useRef(state);
+  stateRef.current = state;
+
+  // Debounced save to Supabase (fires 1.5s after last change)
+  const saveTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const scheduleSave = useCallback((newState: GameState) => {
+    // Always keep localStorage in sync (instant)
+    localStorage.setItem('watchGameProgression', JSON.stringify(newState));
+
+    if (!newState.playerName) return; // anonymous – skip Supabase
+    if (saveTimer.current) clearTimeout(saveTimer.current);
+    saveTimer.current = setTimeout(() => {
+      saveStudent(newState.playerName, {
+        max_unlocked_phase: newState.maxUnlockedPhase,
+        current_phase: newState.currentPhase,
+        score: newState.score,
+        level: newState.level,
+        phase_wins: newState.phaseWins as Record<string, number>,
+        speedrun_highscore: newState.speedrunHighscore,
+      });
+    }, 1500);
+  }, []);
+
   useEffect(() => {
-    localStorage.setItem('watchGameProgression', JSON.stringify(state));
-  }, [state]);
+    scheduleSave(state);
+  }, [state, scheduleSave]);
 
   const updateState = (updates: Partial<GameState>) => {
     setState(prev => ({ ...prev, ...updates }));
@@ -52,7 +76,7 @@ export function useGameState() {
       const currentPhaseWinsCount = (prevPhaseWins[activePhase] || 0) + 1;
       const nextPhaseWins = { ...prevPhaseWins, [activePhase]: currentPhaseWinsCount };
       
-      // Progression logic: strictly require 5 wins in the specific phase to unlock the next one
+      // Progression logic
       if (nextMaxPhase === 1 && activePhase === 1 && (nextPhaseWins[1] || 0) >= 5) { nextMaxPhase = 2; nextCurrentPhase = 2; }
       else if (nextMaxPhase === 2 && activePhase === 2 && (nextPhaseWins[2] || 0) >= 5) { nextMaxPhase = 3; nextCurrentPhase = 3; }
       else if (nextMaxPhase === 3 && activePhase === 3 && (nextPhaseWins[3] || 0) >= 5) { nextMaxPhase = 4; nextCurrentPhase = 4; }
@@ -81,6 +105,7 @@ export function useGameState() {
 
   const logout = () => {
     setState(defaultState);
+    localStorage.removeItem('watchGameProgression');
   };
 
   return { state, updateState, advanceScore, setPhase, logout };

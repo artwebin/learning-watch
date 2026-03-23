@@ -91,9 +91,10 @@ const App = () => {
   };
 
   const BADGES = [
+    { phase: 1, title: "Urni Detektiv", emoji: "🕐" },
     { phase: 2, title: "Mojster Polovičk", emoji: "🕧" },
     { phase: 3, title: "Kralj Četrtink", emoji: "🕓" },
-    { phase: 4, title: "Gospodar Minut", emoji: "⏱️" },
+    { phase: 4, title: "Minutni Junak", emoji: "⏱️" },
     { phase: 5, title: "Vojaški Časovnik", emoji: "🌍" },
     { phase: 6, title: "Digitalni Genij", emoji: "📱" },
     { phase: 7, title: "Bralec Zgodb", emoji: "📖" },
@@ -213,7 +214,7 @@ const App = () => {
   }
 
   if (!playerName) {
-    return <StartScreen onStart={(name) => updateState({ playerName: name })} />;
+    return <StartScreen onStart={(loadedState) => updateState(loadedState)} />;
   }
 
   return (
@@ -426,43 +427,47 @@ const App = () => {
       )}
 
       {showBadgesModal && (
-        <div className="start-screen-overlay" onClick={() => setShowBadgesModal(false)} style={{ zIndex: 1050 }}>
-          <div className="info-column start-modal" onClick={e => e.stopPropagation()} style={{ width: '90%', maxWidth: '700px', maxHeight: '85vh', overflowY: 'auto' }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '2rem' }}>
-              <h1 className="task-title" style={{ fontSize: '2.5rem', color: 'var(--text-dark)', margin: 0 }}>🏆 Moje Značke</h1>
-              <button onClick={() => setShowBadgesModal(false)} style={{ background: 'var(--surface-solid)', border: 'none', fontSize: '1.5rem', cursor: 'pointer', width: '40px', height: '40px', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: '0 4px 8px rgba(0,0,0,0.1)' }}>✖️</button>
-            </div>
-            
-            <div style={{ background: 'rgba(0,0,0,0.05)', padding: '1rem', borderRadius: '16px', marginBottom: '2rem', textAlign: 'center', fontWeight: 800, color: 'var(--text-dark)' }}>
-              ⚡ Speedrun Rekord: <span style={{ color: 'var(--btn-success)', fontSize: '1.2rem' }}>{speedrunHighscore} točk</span>
+        <div className="start-screen-overlay" style={{ zIndex: 1050 }}>
+          <div className="start-modal" onClick={e => e.stopPropagation()} style={{ background: 'white', borderRadius: '2rem', width: '95%', maxWidth: '900px', maxHeight: '85vh', display: 'flex', flexDirection: 'column', overflow: 'hidden', boxShadow: '0 24px 48px rgba(0,0,0,0.2)' }}>
+
+            <div style={{ padding: '2rem 2rem 1.5rem 2rem', display: 'flex', flexDirection: 'column', gap: '0.5rem', borderBottom: '2px solid rgba(0,0,0,0.05)', background: '#f8fafc' }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                <h1 className="task-title" style={{ fontSize: '2.5rem', color: 'var(--text-dark)', margin: 0 }}>🏆 Moje Značke</h1>
+                <button onClick={() => setShowBadgesModal(false)} style={{ background: 'white', border: '2px solid rgba(0,0,0,0.1)', fontSize: '1.5rem', cursor: 'pointer', width: '40px', height: '40px', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: '0 2px 4px rgba(0,0,0,0.05)' }}>✖️</button>
+              </div>
+              <p style={{ margin: 0, color: 'var(--text-dark)', fontWeight: 700, fontSize: '1rem', opacity: 0.7 }}>🏅 Z vsako odprto stopnjo osvojiš novo značko!</p>
             </div>
 
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(130px, 1fr))', gap: '1.5rem' }}>
-              {BADGES.map(b => {
-                const unlocked = maxUnlockedPhase > b.phase || (b.phase === 9 && speedrunHighscore > 0);
-                return (
-                  <div key={b.phase} style={{
-                    background: unlocked ? 'linear-gradient(135deg, #FFD700 0%, #FDB931 100%)' : 'var(--surface-solid)',
-                    padding: '1.5rem 1rem',
-                    borderRadius: '20px',
-                    textAlign: 'center',
-                    boxShadow: unlocked ? '0 8px 24px rgba(255, 215, 0, 0.4)' : 'inset 0 4px 8px rgba(0,0,0,0.05)',
-                    opacity: unlocked ? 1 : 0.7,
-                    filter: unlocked ? 'none' : 'grayscale(100%)',
-                    transform: unlocked ? 'scale(1.05)' : 'scale(1)',
-                    transition: 'all 0.3s ease'
-                  }}>
-                    <div style={{ fontSize: '3.5rem', marginBottom: '0.75rem', filter: unlocked ? 'drop-shadow(0 4px 8px rgba(0,0,0,0.2))' : 'none' }}>
-                      {unlocked ? b.emoji : '🔒'}
+            <div className="custom-scroll" style={{ padding: '1.5rem 2rem 2rem 2rem', overflowY: 'auto', color: 'var(--text-dark)' }}>
+              <div style={{ background: 'rgba(0,0,0,0.05)', padding: '1rem', borderRadius: '16px', marginBottom: '1.5rem', textAlign: 'center', fontWeight: 800 }}>
+                ⚡ Speedrun Rekord: <span style={{ color: 'var(--btn-success)', fontSize: '1.2rem' }}>{speedrunHighscore} točk</span>
+              </div>
+
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(160px, 1fr))', gap: '1.5rem' }}>
+                {BADGES.map(b => {
+                  const unlocked = maxUnlockedPhase > b.phase || (b.phase === 9 && speedrunHighscore > 0);
+                  return (
+                    <div key={b.phase} style={{
+                      background: unlocked ? 'linear-gradient(135deg, #FFD700 0%, #FDB931 100%)' : '#f0f0f0',
+                      padding: '1.5rem 1rem',
+                      borderRadius: '20px',
+                      textAlign: 'center',
+                      boxShadow: unlocked ? '0 8px 24px rgba(255, 215, 0, 0.4)' : 'inset 0 4px 8px rgba(0,0,0,0.05)',
+                      opacity: unlocked ? 1 : 0.7,
+                      filter: unlocked ? 'none' : 'grayscale(100%)',
+                      transform: unlocked ? 'scale(1.05)' : 'scale(1)',
+                      transition: 'all 0.3s ease'
+                    }}>
+                      <div style={{ fontSize: '3.5rem', marginBottom: '0.75rem', filter: unlocked ? 'drop-shadow(0 4px 8px rgba(0,0,0,0.2))' : 'none' }}>
+                        {unlocked ? b.emoji : '🔒'}
+                      </div>
+                      <div style={{ fontWeight: 900, color: unlocked ? '#664200' : 'var(--text-dark)', fontSize: '1.1rem', lineHeight: '1.2' }}>{b.title}</div>
+                      <div style={{ fontSize: '0.85rem', color: unlocked ? '#b37700' : 'gray', marginTop: '0.5rem', fontWeight: 700 }}>Stopnja {b.phase}</div>
                     </div>
-                    <div style={{ fontWeight: 900, color: unlocked ? '#664200' : 'var(--text-dark)', fontSize: '1.1rem', lineHeight: '1.2' }}>{b.title}</div>
-                    <div style={{ fontSize: '0.85rem', color: unlocked ? '#b37700' : 'gray', marginTop: '0.5rem', fontWeight: 700 }}>Stopnja {b.phase}</div>
-                  </div>
-                )
-              })}
-            </div>
-            <div style={{ textAlign: 'center', marginTop: '2rem', color: 'gray', fontWeight: 600 }}>
-              Z vsako odprto stopnjo osvojiš novo značko!
+                  )
+                })}
+              </div>
+
             </div>
           </div>
         </div>
@@ -551,7 +556,7 @@ const App = () => {
       )}
 
       {showLegendModal && (
-        <div className="start-screen-overlay" onClick={() => setShowLegendModal(false)} style={{ zIndex: 1050 }}>
+        <div className="start-screen-overlay" style={{ zIndex: 1050 }}>
           <div className="start-modal" onClick={e => e.stopPropagation()} style={{ background: 'white', borderRadius: '2rem', width: '90%', maxWidth: '600px', maxHeight: '85vh', display: 'flex', flexDirection: 'column', overflow: 'hidden', boxShadow: '0 24px 48px rgba(0,0,0,0.2)' }}>
             
             <div style={{ padding: '2rem 2rem 1.5rem 2rem', display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '2px solid rgba(0,0,0,0.05)', background: '#f8fafc' }}>
@@ -581,6 +586,9 @@ const App = () => {
 
               <h3 style={{ borderBottom: '2px solid var(--btn-success)', paddingBottom: '0.5rem', marginBottom: '1rem' }}>Kako napredovati?</h3>
               <p>Za prehod na naslednjo stopnjo moraš zbrati vsaj <strong>5 pravilnih zaporednih odgovorov</strong> na svoji najvišji stopnji. Sistem ti bo ob odklepu čestital z zvokom! Če se zmotiš 3x zaporedoma, pa ti bo razkril rešitev in te popeljal naprej.</p>
+              
+              <h3 style={{ borderBottom: '2px solid var(--btn-success)', paddingBottom: '0.5rem', marginBottom: '1rem', marginTop: '1.5rem' }}>Vadba nižjih stopenj 🔁</h3>
+              <p>Kadar koli se lahko vrneš na katero koli nižjo stopnjo in jo vadiš, kolikor želiš! Klikni na <strong>spustni meni s stopnjo</strong> (zgoraj desno) in izberi stopnjo. Tvoj napredek se ne bo izgubil.</p>
               
               <button className="submit-btn btn-primary" onClick={() => setShowLegendModal(false)} style={{ marginTop: '2rem' }}>
                 <span className="btn-content" style={{ color: 'white' }}>Razumem</span>

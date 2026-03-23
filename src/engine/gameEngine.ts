@@ -28,7 +28,7 @@ export const generateTimeForPhase = (phase: Phase): { hour: number; minute: numb
       break;
     case 5:
       hour = Math.floor(Math.random() * 11) + 13; // Strict 24h format (13 - 23)
-      minute = [0, 15, 30, 45, Math.floor(Math.random() * 60)][Math.floor(Math.random() * 5)];
+      minute = Math.floor(Math.random() * 12) * 5;  // Only multiples of 5 (0, 5, 10 ... 55)
       break;
   }
 
