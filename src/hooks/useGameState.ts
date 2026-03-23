@@ -8,6 +8,7 @@ export interface GameState {
   score: number;
   level: number;
   phaseWins: Partial<Record<Phase, number>>;
+  speedrunHighscore: number;
 }
 
 const defaultState: GameState = {
@@ -16,7 +17,8 @@ const defaultState: GameState = {
   currentPhase: 1,
   score: 0,
   level: 1,
-  phaseWins: {}
+  phaseWins: {},
+  speedrunHighscore: 0
 };
 
 export function useGameState() {
