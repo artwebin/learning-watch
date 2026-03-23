@@ -156,14 +156,6 @@ const App = () => {
               )}
             </h1>
             
-            {activePhase !== 6 && activePhase !== 7 && (
-              <div className="legend">
-                <span className="legend-hour">Rdeč = ure</span>
-                <span className="legend-separator"></span>
-                <span className="legend-minute">Zelen = minute</span>
-              </div>
-            )}
-
             {activePhase === 6 && (
               <div className="options-grid">
                 {options.map((opt, i) => {
@@ -195,6 +187,14 @@ const App = () => {
             </span>
             <div className="btn-shadow"></div>
           </button>
+
+          {activePhase !== 6 && activePhase !== 7 && (
+            <div className="legend">
+              <span className="legend-hour">Rdeč = ure</span>
+              <span className="legend-separator"></span>
+              <span className="legend-minute">Zelen = minute</span>
+            </div>
+          )}
         </div>
         
       </div>
